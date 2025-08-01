@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResuMaker - יוצר רזומה שידוכים</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Landing Page Styles */
+        .landing-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 50px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .logo {
+            font-size: 4em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            opacity: 0.9;
+            margin-bottom: 50px;
+        }
+
+        .gender-selection {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .gender-selection h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 30px;
+        }
+
+        .gender-buttons {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .gender-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.3em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            min-width: 150px;
+        }
+
+        .gender-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+
+        /* Main App Styles */
+        .main-container {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .split-view {
+            display: flex;
+            height: 100%;
+        }
+
+        .form-panel {
+            width: 50%;
+            background: white;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .preview-panel {
+            width: 50%;
+            background: #f8f9fa;
+            overflow-y: auto;
+            padding: 20px;
+            border-right: 3px solid #667eea;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-header h1 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group.full-width {
+            flex: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 13px;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .family-member {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            border-right: 3px solid #667eea;
+            position: relative;
+        }
+
+        .add-btn, .remove-btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .add-btn {
+            background: #28a745;
+            color: white;
+        }
+        .add-btn:hover {
+            background: #218838;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+        }
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            display: block;
+            margin: 20px auto;
+            font-weight: bold;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        /* Preview Styles */
+        .preview-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            font-family: 'Times New Roman', serif;
+            line-height: 1.4;
+            min-height: 800px;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .preview-bsd {
+            text-align: right;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .preview-name {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-section {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+
+        .preview-section-title {
+            font-weight: bold;
+            font-size: 18px;
+            text-decoration: underline;
+            margin-bottom: 8px;
+        }
+
+        .preview-item {
+            margin-bottom: 8px;
+            text-align: right;
+            font-size: 16px;
+        }
+
+        .preview-label {
+            font-weight: bold;
+        }
+        
+        #previewPersonal .preview-item {
+            display: inline-block;
+            margin-left: 15px;
+        }
+        
+        /* --- START: Added for dynamic layout --- */
+        .preview-container.compact-mode-1 {
+            line-height: 1.35;
+        }
+        .compact-mode-1 .preview-name { font-size: 22px; margin-bottom: 15px;}
+        .compact-mode-1 .preview-section { margin-bottom: 12px; }
+        .compact-mode-1 .preview-section-title { font-size: 17px; margin-bottom: 7px;}
+        .compact-mode-1 .preview-item { font-size: 15px; margin-bottom: 6px;}
+
+        .preview-container.compact-mode-2 {
+            line-height: 1.3;
+        }
+        .compact-mode-2 .preview-name { font-size: 20px; margin-bottom: 12px;}
+        .compact-mode-2 .preview-section { margin-bottom: 10px; }
+        .compact-mode-2 .preview-section-title { font-size: 16px; margin-bottom: 6px;}
+        .compact-mode-2 .preview-item { font-size: 14px; margin-bottom: 5px;}
+        /* --- END: Added for dynamic layout --- */
+
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .support-btn {
+            background: #FF5E5B;
+            color: white;
+        }
+
+        .later-btn {
+            background: #6c757d;
+            color: white;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .kofi-link {
+            display: inline-block;
+            background: #FF5E5B;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .kofi-link:hover {
+            background: #FF4444;
+        }
+
+        @media (max-width: 900px) {
+            .split-view {
+                flex-direction: column;
+            }
+            
+            .form-panel, .preview-panel {
+                width: 100%;
+                height: 50vh;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .gender-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .modal-content {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="landingPage" class="landing-container">
+        <div class="logo">ResuMaker</div>
+        <div class="subtitle">יוצר רזומה שידוכים מקצועי ומעוצב</div>
+        
+        <div class="gender-selection">
+            <h2>בחר/י את סוג הרזומה</h2>
+            <div class="gender-buttons">
+                <button class="gender-btn" onclick="startForm('boy')">
+                    👨‍🎓 רזומה לבחור
+                </button>
+                <button class="gender-btn" onclick="startForm('girl')">
+                    👩‍🎓 רזומה לבחורה
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <a href="https://ko-fi.com/elizaidoff" target="_blank" class="kofi-link">
+                ☕ אפשר להודות לנו בקו-פי
+            </a>
+        </div>
+    </div>
+
+    <div id="mainApp" class="main-container">
+        <div class="split-view">
+            <div class="form-panel">
+                <button class="back-btn" onclick="goBack()">← חזור לדף הראשי</button>
+                
+                <div class="form-header">
+                    <h1>ResuMaker</h1>
+                    <p id="formSubtitle">יוצר רזומה שידוכים</p>
+                </div>
+
+                <form id="resumeForm" onsubmit="return false;">
+                    <div class="form-section">
+                        <h3 class="section-title">פרטים אישיים</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>שם מלא:</label>
+                                <input type="text" id="fullName" oninput="updatePreview()" required>
+                            </div>
+                            <div class="form-group">
+                                <label>גיל:</label>
+                                <input type="number" id="age" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>גובה:</label>
+                                <input type="text" id="height" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>תאריך לידה:</label>
+                                <input type="text" id="birthDate" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>כתובת:</label>
+                                <input type="text" id="address" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">מוסדות לימוד</h3>
+                        <div id="educationFields">
+                        </div>
+                        <div class="form-row" id="workplaceRow">
+                            <div class="form-group full-width">
+                                <label id="workLabel">מקום עבודה:</label>
+                                <input type="text" id="workplace" oninput="updatePreview()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">הורים</h3>
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>האב:</label>
+                                <textarea id="father" oninput="updatePreview()" placeholder="שם ועיסוק"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>האם:</label>
+                                <textarea id="mother" oninput="updatePreview()" placeholder="שם ועיסוק"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">אחים</h3>
+                        <div id="siblingsContainer">
+                            </div>
+                        <button type="button" class="add-btn" onclick="addSibling()">הוסף אח/אחות</button>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title" id="teachersTitle">רבנים/מחנכות</h3>
+                        <div id="teachersContainer">
+                           </div>
+                        <button type="button" class="add-btn" id="addTeacherBtn" onclick="addTeacher()">הוסף</button>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title" id="friendsSectionTitle">חברים</h3>
+                        <div id="friendsContainer">
+                            </div>
+                        <button type="button" class="add-btn" id="addFriendBtn" onclick="addFriend()">הוסף חבר/ה</button>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">חברים ומכרים של המשפחה</h3>
+                        <div id="familyFriendsContainer">
+                            </div>
+                        <button type="button" class="add-btn" onclick="addFamilyFriend()">הוסף</button>
+                    </div>
+
+                    <button type="button" class="download-btn" onclick="downloadResume()">הורד רזומה</button>
+                </form>
+            </div>
+
+            <div class="preview-panel">
+                <h2 style="text-align: center; color: #667eea; margin-bottom: 20px;">תצוגה מקדימה</h2>
+                <div id="previewContainer" class="preview-container">
+                    <div class="preview-bsd">בס"ד</div>
+                    <div class="preview-name" id="previewName"></div>
+                    
+                    <div class="preview-section" id="previewPersonalSection">
+                        <div id="previewPersonal"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewEducationSection">
+                        <div class="preview-section-title">מוסדות לימוד:</div>
+                        <div id="previewEducation"></div>
+                        <div id="previewWorkplace"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewParentsSection">
+                        <div class="preview-section-title">הורים:</div>
+                        <div id="previewParents"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewSiblingsSection">
+                        <div class="preview-section-title">אחים:</div>
+                        <div id="previewSiblings"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewTeachersSection">
+                        <div class="preview-section-title" id="previewTeachersTitle">רבנים/מחנכות:</div>
+                        <div id="previewTeachers"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewFriendsSection">
+                        <div class="preview-section-title" id="previewFriendsTitle">חברים:</div>
+                        <div id="previewFriends"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewFamilyFriendsSection">
+                        <div class="preview-section-title">חברים ומכרים של המשפחה:</div>
+                        <div id="previewFamilyFriends"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="supportModal" class="modal">
+        <div class="modal-content">
+            <h2>🙏 תודה שהשתמשתם ב-ResuMaker!</h2>
+            <p>אם עזרנו לכם, תוכלו להודות לנו בקישור הבא, החל מ1$.</p>
+            <div class="modal-buttons">
+                <a href="https://ko-fi.com/elizaidoff" target="_blank" class="modal-btn support-btn" onclick="closeModal()">בשמחה ☕</a>
+                <button class="modal-btn later-btn" onclick="closeModal()">אולי מאוחר יותר</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGender = '';
+
+        // --- Navigation ---
+        function startForm(gender) {
+            currentGender = gender;
+            document.getElementById('landingPage').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            
+            setupFormForGender(gender);
+            addInitialDynamicElements();
+            updatePreview();
+        }
+
+        function goBack() {
+            document.getElementById('landingPage').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('resumeForm').reset();
+            resetDynamicSections();
+        }
+
+        // --- Form Setup ---
+        function setupFormForGender(gender) {
+            const educationFields = document.getElementById('educationFields');
+            const teachersTitle = document.getElementById('teachersTitle');
+            const addTeacherBtn = document.getElementById('addTeacherBtn');
+            const workLabel = document.getElementById('workLabel');
+            const friendsSectionTitle = document.getElementById('friendsSectionTitle');
+            const addFriendBtn = document.getElementById('addFriendBtn');
+            const previewFriendsTitle = document.getElementById('previewFriendsTitle');
+            const workplaceRow = document.getElementById('workplaceRow');
+            
+            if (gender === 'boy') {
+                document.getElementById('formSubtitle').textContent = 'רזומה לבחור';
+                educationFields.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group"><label>חיידר:</label><input type="text" id="education1" oninput="updatePreview()"></div>
+                        <div class="form-group"><label>ישיבה קטנה:</label><input type="text" id="education2" oninput="updatePreview()"></div>
+                    </div>
+                    <div class="form-row"><div class="form-group full-width"><label>ישיבה גדולה:</label><input type="text" id="education3" oninput="updatePreview()"></div></div>`;
+                teachersTitle.textContent = 'רבנים בישיבה';
+                addTeacherBtn.textContent = 'הוסף רב';
+                workplaceRow.style.display = 'none';
+                document.getElementById('previewTeachersTitle').textContent = 'רבנים בישיבה:';
+                friendsSectionTitle.textContent = 'חברים';
+                addFriendBtn.textContent = 'הוסף חבר/ה';
+                previewFriendsTitle.textContent = 'חברים:';
+            } else { // girl
+                document.getElementById('formSubtitle').textContent = 'רזומה לבחורה';
+                educationFields.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group"><label>יסודי:</label><input type="text" id="education1" oninput="updatePreview()"></div>
+                        <div class="form-group"><label>סמינר:</label><input type="text" id="education3" oninput="updatePreview()"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width"><label>מסלול:</label><input type="text" id="education4" oninput="updatePreview()"></div>
+                    </div>`;
+                teachersTitle.textContent = 'מחנכות ומורות';
+                addTeacherBtn.textContent = 'הוסף מחנכת/מורה';
+                workplaceRow.style.display = 'flex';
+                workLabel.textContent = 'מקום עבודה:';
+                document.getElementById('previewTeachersTitle').textContent = 'מחנכות ומורות:';
+                friendsSectionTitle.textContent = 'חברות';
+                addFriendBtn.textContent = 'הוספי חברה';
+                previewFriendsTitle.textContent = 'חברות:';
+            }
+        }
+
+        function addInitialDynamicElements() {
+            if (document.getElementById('siblingsContainer').childElementCount === 0) addSibling(false);
+            if (document.getElementById('teachersContainer').childElementCount === 0) addTeacher(false);
+            if (document.getElementById('friendsContainer').childElementCount === 0) addFriend(false);
+            if (document.getElementById('familyFriendsContainer').childElementCount === 0) addFamilyFriend(false);
+        }
+
+        function resetDynamicSections() {
+            document.getElementById('siblingsContainer').innerHTML = '';
+            document.getElementById('teachersContainer').innerHTML = '';
+            document.getElementById('friendsContainer').innerHTML = '';
+            document.getElementById('familyFriendsContainer').innerHTML = '';
+        }
+
+        // --- Dynamic Element Functions ---
+        function removeDynamicElement(btn) {
+            btn.closest('.family-member').remove();
+            updatePreview();
+        }
+
+        function addSibling(showRemoveBtn = true) {
+            const container = document.getElementById('siblingsContainer');
+            const div = document.createElement('div');
+            div.className = 'family-member';
+            div.innerHTML = `
+                ${showRemoveBtn ? '<button type="button" class="remove-btn" onclick="removeDynamicElement(this)">הסר</button>' : ''}
+                <div class="form-row">
+                    <div class="form-group"><label>שם:</label><input type="text" name="siblingName" oninput="updatePreview()"></div>
+                    <div class="form-group"><label>גיל:</label><input type="number" name="siblingAge" oninput="updatePreview()"></div>
+                </div>
+                <div class="form-row"><div class="form-group full-width"><label>פרטים:</label><textarea name="siblingDetails" oninput="updatePreview()" placeholder="מה הוא/היא לומד/ת או עושה"></textarea></div></div>`;
+            container.appendChild(div);
+        }
+
+        function addTeacher(showRemoveBtn = true) {
+            const container = document.getElementById('teachersContainer');
+            const div = document.createElement('div');
+            div.className = 'family-member';
+            const labelText = currentGender === 'boy' ? 'שם הרב:' : 'שם המחנכת/מורה:';
+            div.innerHTML = `
+                ${showRemoveBtn ? '<button type="button" class="remove-btn" onclick="removeDynamicElement(this)">הסר</button>' : ''}
+                <div class="form-row">
+                    <div class="form-group"><label>${labelText}</label><input type="text" name="teacherName" oninput="updatePreview()"></div>
+                    <div class="form-group"><label>תפקיד:</label><input type="text" name="teacherRole" oninput="updatePreview()"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>טלפון:</label><input type="text" name="teacherPhone" oninput="updatePreview()"></div>
+                    <div class="form-group"><label>פרטים נוספים:</label><input type="text" name="teacherDetails" oninput="updatePreview()"></div>
+                </div>`;
+            container.appendChild(div);
+        }
+
+        function addFriend(showRemoveBtn = true) {
+            const container = document.getElementById('friendsContainer');
+            const div = document.createElement('div');
+            div.className = 'family-member';
+            const placeholderText = currentGender === 'boy' ? "חבר/חברותא וכו'" : "חברה טובה וכו'";
+            div.innerHTML = `
+                ${showRemoveBtn ? '<button type="button" class="remove-btn" onclick="removeDynamicElement(this)">הסר</button>' : ''}
+                <div class="form-row">
+                    <div class="form-group"><label>שם:</label><input type="text" name="friendName" oninput="updatePreview()"></div>
+                    <div class="form-group"><label>טלפון:</label><input type="text" name="friendPhone" oninput="updatePreview()"></div>
+                </div>
+                <div class="form-row"><div class="form-group full-width"><label>קשר/פרטים:</label><input type="text" name="friendDetails" placeholder="${placeholderText}" oninput="updatePreview()"></div></div>`;
+            container.appendChild(div);
+        }
+
+        function addFamilyFriend(showRemoveBtn = true) {
+            const container = document.getElementById('familyFriendsContainer');
+            const div = document.createElement('div');
+            div.className = 'family-member';
+            div.innerHTML = `
+                ${showRemoveBtn ? '<button type="button" class="remove-btn" onclick="removeDynamicElement(this)">הסר</button>' : ''}
+                <div class="form-row">
+                    <div class="form-group"><label>שם:</label><input type="text" name="familyFriendName" oninput="updatePreview()"></div>
+                    <div class="form-group"><label>טלפון:</label><input type="text" name="familyFriendPhone" oninput="updatePreview()"></div>
+                </div>
+                <div class="form-row"><div class="form-group full-width"><label>קשר:</label><input type="text" name="familyFriendRelation" placeholder="שכן/חבר של האבא וכו'" oninput="updatePreview()"></div></div>`;
+            container.appendChild(div);
+        }
+        
+        // --- START: Added for dynamic layout ---
+        // Function to adjust layout based on content height
+        function adjustLayout() {
+            const previewContainer = document.getElementById('previewContainer');
+            
+            // Reset classes to get the natural height
+            previewContainer.classList.remove('compact-mode-1', 'compact-mode-2');
+            
+            const contentHeight = previewContainer.scrollHeight;
+            
+            // A4-like pixel thresholds. May need tweaking.
+            const level1Threshold = 950; 
+            const level2Threshold = 1050;
+
+            if (contentHeight > level2Threshold) {
+                previewContainer.classList.add('compact-mode-2');
+            } else if (contentHeight > level1Threshold) {
+                previewContainer.classList.add('compact-mode-1');
+            }
+        }
+        // --- END: Added for dynamic layout ---
+
+
+        // --- Live Preview ---
+        function updatePreview() {
+            // Personal info
+            document.getElementById('previewName').textContent = document.getElementById('fullName').value;
+            const age = document.getElementById('age').value;
+            const height = document.getElementById('height').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const address = document.getElementById('address').value;
+            let personalHTML = '';
+            if (age) personalHTML += `<div class="preview-item"><span class="preview-label">גיל:</span> ${age}</div>`;
+            if (height) personalHTML += `<div class="preview-item"><span class="preview-label">גובה:</span> ${height}</div>`;
+            if (birthDate) personalHTML += `<div class="preview-item"><span class="preview-label">ת. לידה:</span> ${birthDate}</div>`;
+            if (address) personalHTML += `<div class="preview-item"><span class="preview-label">כתובת:</span> ${address}</div>`;
+            document.getElementById('previewPersonal').innerHTML = personalHTML;
+            document.getElementById('previewPersonalSection').style.display = personalHTML ? 'block' : 'none';
+
+            // Education
+            let educationHTML = '';
+            let eduInputs = document.getElementById('educationFields').querySelectorAll('input');
+            eduInputs.forEach(input => {
+                if (input.value) {
+                    let label = input.previousElementSibling.textContent;
+                    educationHTML += `<div class="preview-item"><span class="preview-label">${label}</span> ${input.value}</div>`;
+                }
+            });
+            document.getElementById('previewEducation').innerHTML = educationHTML;
+            
+            const workplaceRow = document.getElementById('workplaceRow');
+            const workplace = document.getElementById('workplace').value;
+            
+            if (window.getComputedStyle(workplaceRow).display !== 'none' && workplace) {
+                 document.getElementById('previewWorkplace').innerHTML = `<div class="preview-item"><span class="preview-label">${document.getElementById('workLabel').textContent}</span> ${workplace}</div>`;
+            } else {
+                document.getElementById('previewWorkplace').innerHTML = '';
+            }
+            
+            document.getElementById('previewEducationSection').style.display = (educationHTML || (window.getComputedStyle(workplaceRow).display !== 'none' && workplace)) ? 'block' : 'none';
+
+
+            // Parents
+            const father = document.getElementById('father').value;
+            const mother = document.getElementById('mother').value;
+            let parentsHTML = '';
+            if (father) parentsHTML += `<div class="preview-item"><span class="preview-label">האב:</span> ${father.replace(/\n/g, '<br>')}</div>`;
+            if (mother) parentsHTML += `<div class="preview-item"><span class="preview-label">האם:</span> ${mother.replace(/\n/g, '<br>')}</div>`;
+            document.getElementById('previewParents').innerHTML = parentsHTML;
+            document.getElementById('previewParentsSection').style.display = (father || mother) ? 'block' : 'none';
+
+            // Dynamic sections
+            generatePreviewForSection('siblingsContainer', 'previewSiblings', 'previewSiblingsSection', item => {
+                const name = item.querySelector('[name="siblingName"]').value;
+                if (!name) return '';
+                const age = item.querySelector('[name="siblingAge"]').value;
+                const details = item.querySelector('[name="siblingDetails"]').value;
+                let text = `• ${name}`;
+                if (age) text += `, ${age}`;
+                if (details) text += ` - ${details}`;
+                return text;
+            });
+
+            generatePreviewForSection('teachersContainer', 'previewTeachers', 'previewTeachersSection', item => {
+                const name = item.querySelector('[name="teacherName"]').value;
+                if (!name) return '';
+                const role = item.querySelector('[name="teacherRole"]').value;
+                const phone = item.querySelector('[name="teacherPhone"]').value;
+                const details = item.querySelector('[name="teacherDetails"]').value;
+                let text = `• ${name}`;
+                if (role) text += ` (${role})`;
+                if (details) text += ` - ${details}`;
+                if (phone) text += `, טל': ${phone}`;
+                return text;
+            });
+
+            generatePreviewForSection('friendsContainer', 'previewFriends', 'previewFriendsSection', item => {
+                const name = item.querySelector('[name="friendName"]').value;
+                if (!name) return '';
+                const phone = item.querySelector('[name="friendPhone"]').value;
+                const details = item.querySelector('[name="friendDetails"]').value;
+                let text = `• ${name}`;
+                if (details) text += ` (${details})`;
+                if (phone) text += `, טל': ${phone}`;
+                return text;
+            });
+
+            generatePreviewForSection('familyFriendsContainer', 'previewFamilyFriends', 'previewFamilyFriendsSection', item => {
+                const name = item.querySelector('[name="familyFriendName"]').value;
+                if (!name) return '';
+                const phone = item.querySelector('[name="familyFriendPhone"]').value;
+                const relation = item.querySelector('[name="familyFriendRelation"]').value;
+                let text = `• ${name}`;
+                if (relation) text += ` (${relation})`;
+                if (phone) text += `, טל': ${phone}`;
+                return text;
+            });
+
+            // Adjust layout at the end of every update
+            adjustLayout();
+        }
+        
+        function generatePreviewForSection(containerId, previewId, sectionId, formatter) {
+            const items = document.getElementById(containerId).querySelectorAll('.family-member');
+            let html = '';
+            let hasContent = false;
+            items.forEach(item => {
+                const text = formatter(item);
+                if (text) {
+                    html += `<div class="preview-item">${text}</div>`;
+                    hasContent = true;
+                }
+            });
+            document.getElementById(previewId).innerHTML = html;
+            document.getElementById(sectionId).style.display = hasContent ? 'block' : 'none';
+        }
+
+        // --- PDF & Modal ---
+        function downloadResume() {
+            document.getElementById('supportModal').style.display = 'block';
+            
+            const { jsPDF } = window.jspdf;
+            const resumeElement = document.getElementById('previewContainer');
+            const fullName = document.getElementById('fullName').value || 'resume';
+
+            html2canvas(resumeElement, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                
+                const imgWidth = pdfWidth - 20; // with margin
+                const imgHeight = imgWidth / ratio;
+                const x = 10;
+                const y = 10;
+                
+                // Check if the image height is greater than the PDF page height
+                if (imgHeight > pdfHeight - 20) {
+                    // This is a simple fallback, for very long content it might still overflow
+                    // The dynamic layout adjustment should prevent this in most cases.
+                    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                } else {
+                    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                }
+
+                pdf.save(`${fullName.replace(/\s+/g, '_')}.pdf`);
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('supportModal').style.display = 'none';
+        }
+
+    </script>
+</body>
+</html>
