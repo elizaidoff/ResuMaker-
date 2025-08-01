@@ -6,6 +6,9 @@
     <title>ResuMaker - יוצר רזומה שידוכים</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Assistant:wght@400;700&family=David+Libre:wght@400;700&family=Frank+Ruhl+Libre:wght@400;700&family=Heebo:wght@400;700&family=Miriam+Libre:wght@400;700&family=Noto+Serif+Hebrew:wght@400;700&family=Tinos:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -157,6 +160,23 @@
             flex: 1;
             min-width: 150px;
         }
+        
+        .form-group.status-group {
+            display: flex;
+            align-items: center; /* This helps align the radio buttons and labels vertically */
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .status-group label {
+            margin-bottom: 0;
+            vertical-align: middle;
+            font-weight: normal; /* Make labels for radio buttons not bold if desired */
+        }
+        input[type="radio"] {
+            vertical-align: middle;
+            margin-left: 3px; /* Adjust spacing between radio and text if needed */
+        }
+
 
         .form-group.full-width {
             flex: 100%;
@@ -186,7 +206,7 @@
 
         textarea {
             resize: vertical;
-            min-height: 60px;
+            min-height: 80px;
         }
 
         .family-member {
@@ -225,6 +245,14 @@
         .remove-btn:hover {
             background: #c82333;
         }
+        
+        .married-info, .single-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+
 
         .download-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -256,6 +284,17 @@
             color: #333;
             transition: all 0.3s ease;
         }
+        
+        #previewImage {
+            float: left;
+            max-width: 140px;
+            max-height: 180px;
+            margin-right: 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            display: none; /* Hidden by default */
+        }
 
         .preview-bsd {
             text-align: right;
@@ -273,6 +312,7 @@
         .preview-section {
             margin-bottom: 15px;
             text-align: right;
+            overflow: hidden; /* To contain the floated image */
         }
 
         .preview-section-title {
@@ -286,6 +326,11 @@
             margin-bottom: 8px;
             text-align: right;
             font-size: 16px;
+        }
+        
+        #previewAbout {
+             white-space: pre-wrap; /* Respects newlines in the textarea */
+             font-size: 16px;
         }
 
         .preview-label {
@@ -304,7 +349,7 @@
         .compact-mode-1 .preview-name { font-size: 22px; margin-bottom: 15px;}
         .compact-mode-1 .preview-section { margin-bottom: 12px; }
         .compact-mode-1 .preview-section-title { font-size: 17px; margin-bottom: 7px;}
-        .compact-mode-1 .preview-item { font-size: 15px; margin-bottom: 6px;}
+        .compact-mode-1 .preview-item, .compact-mode-1 #previewAbout { font-size: 15px; margin-bottom: 6px;}
 
         .preview-container.compact-mode-2 {
             line-height: 1.3;
@@ -312,7 +357,7 @@
         .compact-mode-2 .preview-name { font-size: 20px; margin-bottom: 12px;}
         .compact-mode-2 .preview-section { margin-bottom: 10px; }
         .compact-mode-2 .preview-section-title { font-size: 16px; margin-bottom: 6px;}
-        .compact-mode-2 .preview-item { font-size: 14px; margin-bottom: 5px;}
+        .compact-mode-2 .preview-item, .compact-mode-2 #previewAbout { font-size: 14px; margin-bottom: 5px;}
         /* --- END: Added for dynamic layout --- */
 
 
@@ -438,7 +483,7 @@
         
         <div class="footer">
             <a href="https://ko-fi.com/elizaidoff" target="_blank" class="kofi-link">
-                ☕ אפשר להודות לנו בקו-פי
+                ☕ תמכו בנו בקו-פי
             </a>
         </div>
     </div>
@@ -455,7 +500,22 @@
 
                 <form id="resumeForm" onsubmit="return false;">
                     <div class="form-section">
-                        <h3 class="section-title">פרטים אישיים</h3>
+                        <h3 class="section-title">עיצוב ופרטים אישיים</h3>
+                         <div class="form-group full-width">
+                            <label>בחירת גופן:</label>
+                            <select id="fontSelector" onchange="updateFont()">
+                                <option value="'Times New Roman', serif">Times New Roman (ברירת מחדל)</option>
+                                <option value="'Arial', sans-serif">Arial</option>
+                                <option value="'David Libre', serif">David Libre</option>
+                                <option value="'Frank Ruhl Libre', serif">Frank Ruhl Libre</option>
+                                <option value="'Heebo', sans-serif">Heebo</option>
+                                <option value="'Arimo', sans-serif">Arimo</option>
+                                <option value="'Tinos', serif">Tinos</option>
+                                <option value="'Miriam Libre', sans-serif">Miriam Libre</option>
+                                <option value="'Assistant', sans-serif">Assistant</option>
+                                <option value="'Noto Serif Hebrew', serif">Noto Serif Hebrew</option>
+                            </select>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label>שם מלא:</label>
@@ -499,15 +559,29 @@
                     <div class="form-section">
                         <h3 class="section-title">הורים</h3>
                         <div class="form-row">
-                            <div class="form-group full-width">
-                                <label>האב:</label>
-                                <textarea id="father" oninput="updatePreview()" placeholder="שם ועיסוק"></textarea>
+                             <div class="form-group">
+                                <label>שם האב:</label>
+                                <input type="text" id="fatherName" oninput="updatePreview()">
+                            </div>
+                             <div class="form-group">
+                                <label>עיסוק האב:</label>
+                                <input type="text" id="fatherOccupation" oninput="updatePreview()">
                             </div>
                         </div>
                         <div class="form-row">
-                            <div class="form-group full-width">
-                                <label>האם:</label>
-                                <textarea id="mother" oninput="updatePreview()" placeholder="שם ועיסוק"></textarea>
+                            <div class="form-group">
+                                <label>שם האם:</label>
+                                <input type="text" id="motherName" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>שם קודם (נעורים):</label>
+                                <input type="text" id="motherMaidenName" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                             <div class="form-group full-width">
+                                <label>עיסוק האם:</label>
+                                <input type="text" id="motherOccupation" oninput="updatePreview()">
                             </div>
                         </div>
                     </div>
@@ -539,6 +613,18 @@
                             </div>
                         <button type="button" class="add-btn" onclick="addFamilyFriend()">הוסף</button>
                     </div>
+                    
+                    <div class="form-section">
+                        <h3 class="section-title">אופציונלי</h3>
+                        <div class="form-group full-width">
+                            <label>תיאור</label>
+                            <textarea id="aboutText" oninput="updatePreview()"></textarea>
+                        </div>
+                         <div class="form-group full-width">
+                            <label>העלאת תמונה (מומלץ לברר קודם מה מקובל בקהילתכם)</label>
+                            <input type="file" id="imageUpload" accept="image/*">
+                        </div>
+                    </div>
 
                     <button type="button" class="download-btn" onclick="downloadResume()">הורד רזומה</button>
                 </form>
@@ -547,6 +633,7 @@
             <div class="preview-panel">
                 <h2 style="text-align: center; color: #667eea; margin-bottom: 20px;">תצוגה מקדימה</h2>
                 <div id="previewContainer" class="preview-container">
+                    <img id="previewImage" src="" alt="תמונה">
                     <div class="preview-bsd">בס"ד</div>
                     <div class="preview-name" id="previewName"></div>
                     
@@ -558,6 +645,11 @@
                         <div class="preview-section-title">מוסדות לימוד:</div>
                         <div id="previewEducation"></div>
                         <div id="previewWorkplace"></div>
+                    </div>
+
+                    <div class="preview-section" id="previewAboutSection">
+                        <div class="preview-section-title" id="previewAboutTitle"></div>
+                        <div id="previewAbout"></div>
                     </div>
 
                     <div class="preview-section" id="previewParentsSection">
@@ -602,12 +694,50 @@
 
     <script>
         let currentGender = '';
+        let siblingCounter = 0;
+        
+        // --- Event listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Image Upload
+            document.getElementById('imageUpload').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                const previewName = document.getElementById('previewName');
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const previewImage = document.getElementById('previewImage');
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                        previewName.style.textAlign = 'right'; // Align name to the right
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    // Reset if no file is chosen
+                    const previewImage = document.getElementById('previewImage');
+                    previewImage.src = '';
+                    previewImage.style.display = 'none';
+                    document.getElementById('imageUpload').value = null;
+                    previewName.style.textAlign = 'center';
+                }
+            });
+        });
+        
+        function updateFont() {
+            const selectedFont = document.getElementById('fontSelector').value;
+            document.getElementById('previewContainer').style.fontFamily = selectedFont;
+        }
+
 
         // --- Navigation ---
         function startForm(gender) {
             currentGender = gender;
             document.getElementById('landingPage').style.display = 'none';
             document.getElementById('mainApp').style.display = 'block';
+            
+            // Scroll form panel to top after a tiny delay to allow rendering
+            setTimeout(() => {
+                document.querySelector('.form-panel').scrollTop = 0;
+            }, 1);
             
             setupFormForGender(gender);
             addInitialDynamicElements();
@@ -618,6 +748,18 @@
             document.getElementById('landingPage').style.display = 'block';
             document.getElementById('mainApp').style.display = 'none';
             document.getElementById('resumeForm').reset();
+            
+            // Reset image and name alignment
+            const previewImage = document.getElementById('previewImage');
+            previewImage.src = '';
+            previewImage.style.display = 'none';
+            document.getElementById('imageUpload').value = null;
+            document.getElementById('previewName').style.textAlign = 'center';
+            
+            // Reset font
+            document.getElementById('fontSelector').selectedIndex = 0;
+            updateFont();
+
             resetDynamicSections();
         }
 
@@ -631,7 +773,10 @@
             const addFriendBtn = document.getElementById('addFriendBtn');
             const previewFriendsTitle = document.getElementById('previewFriendsTitle');
             const workplaceRow = document.getElementById('workplaceRow');
+            const previewAboutTitle = document.getElementById('previewAboutTitle');
             
+            previewAboutTitle.textContent = 'תיאור:';
+
             if (gender === 'boy') {
                 document.getElementById('formSubtitle').textContent = 'רזומה לבחור';
                 educationFields.innerHTML = `
@@ -677,9 +822,40 @@
 
         function resetDynamicSections() {
             document.getElementById('siblingsContainer').innerHTML = '';
+            siblingCounter = 0;
             document.getElementById('teachersContainer').innerHTML = '';
             document.getElementById('friendsContainer').innerHTML = '';
             document.getElementById('familyFriendsContainer').innerHTML = '';
+        }
+
+        // --- Dynamic Sibling Logic ---
+        function handleStatusChange(radio) {
+            const parent = radio.closest('.family-member');
+            const status = radio.value;
+            const singleInfo = parent.querySelector('.single-info');
+            const marriedInfo = parent.querySelector('.married-info');
+            const spouseLabel = parent.querySelector('.spouse-label');
+            const pastSchoolLabel = parent.querySelector('.past-school-label');
+            const spouseNameInput = parent.querySelector('[name="siblingSpouseName"]');
+
+            singleInfo.style.display = 'none';
+            marriedInfo.style.display = 'none';
+
+            if (status === 'single') {
+                singleInfo.style.display = 'block';
+            } else if (status === 'married_man') {
+                marriedInfo.style.display = 'block';
+                spouseLabel.textContent = 'שם בת הזוג:';
+                pastSchoolLabel.textContent = 'ישיבה לפני הנישואין:';
+                // Problem 1: Updated placeholder text as per user's request
+                spouseNameInput.placeholder = 'לדוגמא: חני (לבית חן) (סוגריים נוספים אוטומטית)';
+            } else if (status === 'married_woman') {
+                marriedInfo.style.display = 'block';
+                spouseLabel.textContent = 'שם בן הזוג:';
+                pastSchoolLabel.textContent = 'סמינר לפני הנישואין:';
+                spouseNameInput.placeholder = 'לדוגמא: דוד כהנובסקי';
+            }
+            updatePreview();
         }
 
         // --- Dynamic Element Functions ---
@@ -689,6 +865,7 @@
         }
 
         function addSibling(showRemoveBtn = true) {
+            siblingCounter++;
             const container = document.getElementById('siblingsContainer');
             const div = document.createElement('div');
             div.className = 'family-member';
@@ -698,8 +875,37 @@
                     <div class="form-group"><label>שם:</label><input type="text" name="siblingName" oninput="updatePreview()"></div>
                     <div class="form-group"><label>גיל:</label><input type="number" name="siblingAge" oninput="updatePreview()"></div>
                 </div>
-                <div class="form-row"><div class="form-group full-width"><label>פרטים:</label><textarea name="siblingDetails" oninput="updatePreview()" placeholder="מה הוא/היא לומד/ת או עושה"></textarea></div></div>`;
+                <div class="form-group status-group">
+                    <label>סטטוס:</label>
+                    <input type="radio" id="s_single_${siblingCounter}" name="siblingStatus_${siblingCounter}" value="single" onchange="handleStatusChange(this)" checked><label for="s_single_${siblingCounter}">רווק/ה</label>
+                    <input type="radio" id="s_man_${siblingCounter}" name="siblingStatus_${siblingCounter}" value="married_man" onchange="handleStatusChange(this)"><label for="s_man_${siblingCounter}">נשוי</label>
+                    <input type="radio" id="s_woman_${siblingCounter}" name="siblingStatus_${siblingCounter}" value="married_woman" onchange="handleStatusChange(this)"><label for="s_woman_${siblingCounter}">נשואה</label>
+                </div>
+                
+                <div class="single-info" style="display: block;">
+                     <div class="form-group full-width"><label>פרטים (מקום לימודים/עבודה):</label><input type="text" name="siblingSingleDetails" oninput="updatePreview()"></div>
+                </div>
+
+                <div class="married-info" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group"><label class="spouse-label">שם בן/בת הזוג:</label><input type="text" name="siblingSpouseName" oninput="updatePreview()" placeholder="לדוגמא: חני (לבית חן) (הסוגריים נוספים אוטומטית)"></div>
+                        <div class="form-group"><label>מידע נוסף (אופציונלי):</label><input type="text" name="siblingExtraInfo" oninput="updatePreview()"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>עיסוק נוכחי:</label><input type="text" name="siblingCurrentOccupation" oninput="updatePreview()"></div>
+                        <div class="form-group"><label class="past-school-label">ישיבה/סמינר לפני הנישואין:</label><input type="text" name="siblingPastSchool" oninput="updatePreview()"></div>
+                    </div>
+                </div>
+            `;
             container.appendChild(div);
+            // Manually trigger handleStatusChange to set initial placeholder and display based on default checked status
+            setTimeout(() => {
+                const checkedRadio = div.querySelector(`input[name="siblingStatus_${siblingCounter}"]:checked`);
+                if (checkedRadio) {
+                    handleStatusChange(checkedRadio);
+                }
+            }, 0);
+            div.querySelector('input[name="siblingName"]').focus();
         }
 
         function addTeacher(showRemoveBtn = true) {
@@ -718,6 +924,7 @@
                     <div class="form-group"><label>פרטים נוספים:</label><input type="text" name="teacherDetails" oninput="updatePreview()"></div>
                 </div>`;
             container.appendChild(div);
+            div.querySelector('input').focus();
         }
 
         function addFriend(showRemoveBtn = true) {
@@ -733,6 +940,7 @@
                 </div>
                 <div class="form-row"><div class="form-group full-width"><label>קשר/פרטים:</label><input type="text" name="friendDetails" placeholder="${placeholderText}" oninput="updatePreview()"></div></div>`;
             container.appendChild(div);
+            div.querySelector('input').focus();
         }
 
         function addFamilyFriend(showRemoveBtn = true) {
@@ -747,19 +955,14 @@
                 </div>
                 <div class="form-row"><div class="form-group full-width"><label>קשר:</label><input type="text" name="familyFriendRelation" placeholder="שכן/חבר של האבא וכו'" oninput="updatePreview()"></div></div>`;
             container.appendChild(div);
+            div.querySelector('input').focus();
         }
         
-        // --- START: Added for dynamic layout ---
-        // Function to adjust layout based on content height
+        // --- Function to adjust layout based on content height ---
         function adjustLayout() {
             const previewContainer = document.getElementById('previewContainer');
-            
-            // Reset classes to get the natural height
             previewContainer.classList.remove('compact-mode-1', 'compact-mode-2');
-            
             const contentHeight = previewContainer.scrollHeight;
-            
-            // A4-like pixel thresholds. May need tweaking.
             const level1Threshold = 950; 
             const level2Threshold = 1050;
 
@@ -769,8 +972,6 @@
                 previewContainer.classList.add('compact-mode-1');
             }
         }
-        // --- END: Added for dynamic layout ---
-
 
         // --- Live Preview ---
         function updatePreview() {
@@ -810,31 +1011,114 @@
             
             document.getElementById('previewEducationSection').style.display = (educationHTML || (window.getComputedStyle(workplaceRow).display !== 'none' && workplace)) ? 'block' : 'none';
 
+            // About section
+            const aboutText = document.getElementById('aboutText').value;
+            const previewAboutSection = document.getElementById('previewAboutSection');
+            if (aboutText) {
+                document.getElementById('previewAbout').textContent = aboutText;
+                previewAboutSection.style.display = 'block';
+            } else {
+                previewAboutSection.style.display = 'none';
+            }
 
             // Parents
-            const father = document.getElementById('father').value;
-            const mother = document.getElementById('mother').value;
+            const fatherName = document.getElementById('fatherName').value;
+            const fatherOccupation = document.getElementById('fatherOccupation').value;
+            const motherName = document.getElementById('motherName').value;
+            const motherMaidenName = document.getElementById('motherMaidenName').value;
+            const motherOccupation = document.getElementById('motherOccupation').value;
+            
             let parentsHTML = '';
-            if (father) parentsHTML += `<div class="preview-item"><span class="preview-label">האב:</span> ${father.replace(/\n/g, '<br>')}</div>`;
-            if (mother) parentsHTML += `<div class="preview-item"><span class="preview-label">האם:</span> ${mother.replace(/\n/g, '<br>')}</div>`;
-            document.getElementById('previewParents').innerHTML = parentsHTML;
-            document.getElementById('previewParentsSection').style.display = (father || mother) ? 'block' : 'none';
+            if (fatherName || fatherOccupation) {
+                let fatherLine = `<span class="preview-label">האב:</span> ${fatherName}`;
+                if (fatherOccupation) fatherLine += ` - ${fatherOccupation}`;
+                parentsHTML += `<div class="preview-item">${fatherLine}</div>`;
+            }
+            if (motherName || motherOccupation || motherMaidenName) {
+                let motherLine = `<span class="preview-label">האם:</span> ${motherName}`;
+                // Problem 4: Add "לבית" inside parentheses for mother's maiden name
+                if (motherMaidenName) motherLine += ` (לבית ${motherMaidenName})`;
+                if (motherOccupation) motherLine += ` - ${motherOccupation}`;
+                parentsHTML += `<div class="preview-item">${motherLine}</div>`;
+            }
 
-            // Dynamic sections
+            document.getElementById('previewParents').innerHTML = parentsHTML;
+            document.getElementById('previewParentsSection').style.display = parentsHTML ? 'block' : 'none';
+
+            // Siblings
             generatePreviewForSection('siblingsContainer', 'previewSiblings', 'previewSiblingsSection', item => {
                 const name = item.querySelector('[name="siblingName"]').value;
                 if (!name) return '';
                 const age = item.querySelector('[name="siblingAge"]').value;
-                const details = item.querySelector('[name="siblingDetails"]').value;
+                const status = item.querySelector('input[type="radio"]:checked').value;
+                
                 let text = `• ${name}`;
                 if (age) text += `, ${age}`;
-                if (details) text += ` - ${details}`;
+
+                let detailsArray = [];
+
+                if (status === 'single') {
+                    const details = item.querySelector('[name="siblingSingleDetails"]').value;
+                    if(details) detailsArray.push(details);
+                } else { // Married man or woman
+                    const spouseName = item.querySelector('[name="siblingSpouseName"]').value;
+                    const extraInfo = item.querySelector('[name="siblingExtraInfo"]').value;
+                    const current = item.querySelector('[name="siblingCurrentOccupation"]').value;
+                    const past = item.querySelector('[name="siblingPastSchool"]').value;
+                    
+                    if (spouseName) {
+                        let spouseText = '';
+                        const statusText = status === 'married_man' ? 'נשוי ל' : 'נשואה ל';
+
+                        if (status === 'married_man') { // Sibling is a boy, spouse is a girl
+                            if (spouseName.includes('לבית')) {
+                                const parts = spouseName.split('לבית');
+                                const firstName = parts[0].trim();
+                                const lastNameAfterLeBeit = parts[1].trim();
+                                
+                                spouseText = `${statusText}${firstName} (לבית ${lastNameAfterLeBeit}`;
+                                if (extraInfo) {
+                                    spouseText += `, ${extraInfo})`; // Problem 2: Combine extraInfo inside same parentheses
+                                } else {
+                                    spouseText += ')'; // Close if no extraInfo but "לבית" was used
+                                }
+                            } else { // No "לבית" but spouse name exists
+                                spouseText = `${statusText}${spouseName}`;
+                                if (extraInfo) {
+                                    spouseText += ` (${extraInfo})`; // Problem 3: Extra info in separate parentheses for male spouse if no "לבית"
+                                }
+                            }
+                        } else { // Sibling is a girl, spouse is a boy (married_woman)
+                            spouseText = `${statusText}${spouseName}`;
+                            if (extraInfo) {
+                                spouseText += ` (${extraInfo})`; // Problem 3: Extra info in separate parentheses for male spouse
+                            }
+                        }
+                        detailsArray.push(spouseText);
+                    } else if (extraInfo) { // If no spouse name but extra info exists (e.g., "נשוי ל (מידע נוסף)")
+                         const statusText = status === 'married_man' ? 'נשוי ל' : 'נשואה ל';
+                         detailsArray.push(`${statusText} (${extraInfo})`);
+                    }
+
+                    if (current) {
+                        detailsArray.push(current);
+                    }
+                    if (past) {
+                        const pastTenseVerb = status === 'married_man' ? 'למד ב' : 'למדה ב';
+                        detailsArray.push(`${pastTenseVerb}${past}`);
+                    }
+                }
+
+                if (detailsArray.length > 0) {
+                    text += `, ${detailsArray.join(', ')}`;
+                }
+                
                 return text;
             });
 
+            // Teachers, Friends, Family Friends (unchanged)
             generatePreviewForSection('teachersContainer', 'previewTeachers', 'previewTeachersSection', item => {
-                const name = item.querySelector('[name="teacherName"]').value;
-                if (!name) return '';
+                const name = item.querySelector('[name="teacherName"]').value; if (!name) return '';
                 const role = item.querySelector('[name="teacherRole"]').value;
                 const phone = item.querySelector('[name="teacherPhone"]').value;
                 const details = item.querySelector('[name="teacherDetails"]').value;
@@ -846,8 +1130,7 @@
             });
 
             generatePreviewForSection('friendsContainer', 'previewFriends', 'previewFriendsSection', item => {
-                const name = item.querySelector('[name="friendName"]').value;
-                if (!name) return '';
+                const name = item.querySelector('[name="friendName"]').value; if (!name) return '';
                 const phone = item.querySelector('[name="friendPhone"]').value;
                 const details = item.querySelector('[name="friendDetails"]').value;
                 let text = `• ${name}`;
@@ -857,8 +1140,7 @@
             });
 
             generatePreviewForSection('familyFriendsContainer', 'previewFamilyFriends', 'previewFamilyFriendsSection', item => {
-                const name = item.querySelector('[name="familyFriendName"]').value;
-                if (!name) return '';
+                const name = item.querySelector('[name="familyFriendName"]').value; if (!name) return '';
                 const phone = item.querySelector('[name="familyFriendPhone"]').value;
                 const relation = item.querySelector('[name="familyFriendRelation"]').value;
                 let text = `• ${name}`;
@@ -897,7 +1179,11 @@
             html2canvas(resumeElement, {
                 scale: 2,
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                onclone: (clonedDoc) => {
+                    // Ensure floated elements are handled correctly by the canvas
+                    clonedDoc.getElementById('previewImage').style.maxWidth = '140px'; 
+                }
             }).then(canvas => {
                 const imgData = canvas.toDataURL('image/png');
                 const pdf = new jsPDF('p', 'mm', 'a4');
@@ -906,20 +1192,20 @@
                 
                 const canvasWidth = canvas.width;
                 const canvasHeight = canvas.height;
-                const ratio = canvasWidth / canvasHeight;
+                const ratio = canvasHeight / canvasWidth;
                 
-                const imgWidth = pdfWidth - 20; // with margin
-                const imgHeight = imgWidth / ratio;
-                const x = 10;
-                const y = 10;
-                
-                // Check if the image height is greater than the PDF page height
-                if (imgHeight > pdfHeight - 20) {
-                    // This is a simple fallback, for very long content it might still overflow
-                    // The dynamic layout adjustment should prevent this in most cases.
-                    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-                } else {
-                    pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                let imgHeight = pdfWidth * ratio;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+
+                while (heightLeft > 0) {
+                    position = -heightLeft;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                    heightLeft -= pdfHeight;
                 }
 
                 pdf.save(`${fullName.replace(/\s+/g, '_')}.pdf`);
