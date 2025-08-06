@@ -1217,5 +1217,62 @@
         }
 
     </script>
+
+<style>
+  #home-button {
+    position: fixed;
+    top: 32px;       /* בערך 2 אינץ' מהמעלה */
+    right: 32px;     /* בערך 2 אינץ' מהצד הימני */
+    background: white;
+    border-radius: 50px;
+    padding: 8px 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: sans-serif;
+    font-size: 14px;
+    color: #333;
+    border: none;
+    z-index: 9999;
+  }
+
+  #home-button svg {
+    width: 20px;
+    height: 20px;
+    fill: black;
+    flex-shrink: 0;
+  }
+
+  #home-button.hidden {
+    display: none;
+  }
+</style>
+
+<button id="home-button" title="לאתר הבית">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+  </svg>
+  <span>לאתר הבית</span>
+</button>
+
+<script>
+  const button = document.getElementById('home-button');
+
+  // בלחיצה על הכפתור - מעבר לאתר באותו חלון
+  button.addEventListener('click', () => {
+    window.location.href = 'https://elizaidoff.github.io/elizee/#home';
+  });
+
+  // אם לוחצים מחוץ לכפתור - הכפתור נעלם
+  document.addEventListener('click', (e) => {
+    if (!button.contains(e.target)) {
+      button.classList.add('hidden');
+    }
+  });
+</script>
+
+
 </body>
 </html>
